@@ -89,8 +89,8 @@ int is_safe(int* nums, int n_nums, int skip_ind) {
     return 1;
 }
 
-int main() {
-    FILE *file_ptr = fopen("data.txt", "r");
+int main(int argc, char *argv[]) {
+    FILE *file_ptr = fopen(argv[1], "r");
     if (file_ptr == NULL) {
         printf("Failed to open file.");
         return 0;

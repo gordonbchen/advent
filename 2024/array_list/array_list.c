@@ -17,6 +17,7 @@ void print(ArrayList* list) {
     for (int i = 0; i < list->len; ++i) {
         printf("%d ", list->ptr[i]);
     }
+    printf("\n");
 }
 
 void append(ArrayList* list, int item) {
@@ -31,6 +32,15 @@ void append(ArrayList* list, int item) {
 
     list->ptr[list->len] = item;
     list->len += 1;
+}
+
+int get_idx(ArrayList* list, int item) {
+    for (int i = 0; i < list->len; ++i) {
+        if (list->ptr[i] == item) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void destroy(ArrayList* list) {

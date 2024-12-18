@@ -32,7 +32,7 @@ def run(a: int, b: int, c: int, program: list[int]) -> list[int]:
 
         match opcode:
             case 0:
-                # * 2 is a right bit shift, // 2 is a left bit shift.
+                # * 2 is a left bit shift, // 2 is a right bit shift.
                 a = a >> get_comb(operand, a, b, c)
             case 1:
                 b = b ^ operand

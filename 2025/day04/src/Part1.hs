@@ -3,17 +3,6 @@ module Part1 where
 import Data.Char
 import qualified Data.Vector as V
 
-bufToStr :: [Char] -> [String]
-bufToStr buf = [reverse buf | not (null buf)]
-
-splitBuf :: [Char] -> String -> Char -> [String]
-splitBuf buf [] _ = bufToStr buf
-splitBuf buf (h : t) delim | h == delim = bufToStr buf ++ splitBuf [] t delim
-                           | otherwise = splitBuf (h : buf) t delim
-
-split :: String -> Char -> [String]
-split = splitBuf []
-
 neighbors :: (Int, Int) -> Int -> Int -> [(Int, Int)]
 neighbors (r, c) rows cols =
     [(x, y)

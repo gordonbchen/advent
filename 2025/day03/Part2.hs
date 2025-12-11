@@ -14,14 +14,15 @@ splitBuf buf (h : t) delim | h == delim = bufToStr buf ++ splitBuf [] t delim
 split :: String -> Char -> [String]
 split = splitBuf []
 
-getMax' :: Int -> Int -> [Int] -> Int
-getMax' l r [] = (l * 10) + r
-getMax' l r (h : t) | (r * 10 + h) > (l * 10 + r) = getMax' r h t
-                    | h > r = getMax' l h t
-                    | otherwise = getMax' l r t
+eat :: [Char] -> Char -> [Char]
+eat [] h = []
+eat [x] h = [max x h]
+eat (x1 : x2 : xs) h | x2 > x1 = x2 : xs ++ [h]
+                     | otherwise = x1 : eat (x2 : xs) h
 
-getMax :: String -> Int
-getMax xs = getMax' 0 0 (map digitToInt xs)
+getMax :: [Char] -> Integer
+getMax xs = read m :: Integer
+    where m = foldl eat (take 12 xs) (drop 12 xs)
 
 main :: IO ()
 main = do

@@ -1,5 +1,5 @@
 import numpy as np
-from linprog import solve_linprog
+from linprog import linprog
 
 
 def print_problem(c: np.ndarray, A: np.ndarray, b: np.ndarray):
@@ -13,17 +13,9 @@ def print_problem(c: np.ndarray, A: np.ndarray, b: np.ndarray):
     print(f"\t{vars} >= 0\n")
 
 
-def print_sol(x: np.ndarray, z: float):
-    print()
-    print(", ".join([f"x{i}={v}" for (i, v) in enumerate(x)]))
-    print(f"z={z}\n\n")
-
-
-
 def test_linprog(c: np.ndarray, A: np.ndarray, b: np.ndarray, x_sol: np.ndarray, z_sol: float):
     print_problem(c, A, b)
-    x, z = solve_linprog(c, A, b)
-    print_sol(x, z)
+    x, z = linprog(c, A, b)
     assert np.allclose(x, x_sol), f"x={x}, x_sol={x_sol}"
     assert np.allclose(z, z_sol), f"z={z}, z_sol={z_sol}"
 
@@ -60,7 +52,18 @@ def test2():
     test_linprog(c, A, b, x_sol, z_sol)
 
 
+def test3():
+    c = np.array([3, 2], dtype=np.float64)
+    A = np.array([[-1, -1],
+                  [1, 2]], dtype=np.float64)
+    b = np.array([-2, 4], dtype=np.float64)
+    x_sol = np.array([2, 0], dtype=np.float64)
+    z_sol = 6
+    test_linprog(c, A, b, x_sol, z_sol)
+
+
 if __name__ == "__main__":
     test0()
     test1()
     test2()
+    test3()

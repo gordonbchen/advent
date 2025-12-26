@@ -1,0 +1,21 @@
+name: day12
+version: 0.1.0.0
+
+dependencies:
+  - base
+  - vector
+  - array
+  - containers
+  - unordered-containers
+  - mtl
+  - monad-loops
+  - split
+
+executables:
+  part1:
+    main: Part1.hs
+    source-dirs: src
+
+  part2:
+    main: Part2.hs
+    source-dirs: src

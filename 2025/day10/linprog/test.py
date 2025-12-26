@@ -1,5 +1,5 @@
 import numpy as np
-from linprog import linprog
+from linprog import linprog, int_linprog
 
 
 def print_problem(c: np.ndarray, A: np.ndarray, b: np.ndarray):
@@ -13,9 +13,13 @@ def print_problem(c: np.ndarray, A: np.ndarray, b: np.ndarray):
     print(f"\t{vars} >= 0\n")
 
 
-def test_linprog(c: np.ndarray, A: np.ndarray, b: np.ndarray, x_sol: np.ndarray, z_sol: float):
+def test_linprog(c: np.ndarray, A: np.ndarray, b: np.ndarray, x_sol: np.ndarray, z_sol: float, int_lp: bool = False):
     print_problem(c, A, b)
-    x, z = linprog(c, A, b)
+    lp_func = int_linprog if int_lp else linprog
+    x, z = lp_func(c, A, b)
+    print("\nSol:")
+    print(f"x = {x}")
+    print(f"z = {z}\n")
     assert np.allclose(x, x_sol), f"x={x}, x_sol={x_sol}"
     assert np.allclose(z, z_sol), f"z={z}, z_sol={z_sol}"
 
@@ -57,9 +61,19 @@ def test3():
     A = np.array([[-1, -1],
                   [1, 2]], dtype=np.float64)
     b = np.array([-2, 4], dtype=np.float64)
-    x_sol = np.array([2, 0], dtype=np.float64)
-    z_sol = 6
+    x_sol = np.array([4, 0], dtype=np.float64)
+    z_sol = 12
     test_linprog(c, A, b, x_sol, z_sol)
+
+
+def test4():
+    c = np.array([1, 1], dtype=np.float64)
+    A = np.array([[8/5, 8/7    ],
+                  [2,   16/15  ]], dtype=np.float64)
+    b = np.array([4, 4], dtype=np.float64)
+    x_sol = np.array([0, 3], dtype=np.float64)
+    z_sol = 3
+    test_linprog(c, A, b, x_sol, z_sol, int_lp=True)
 
 
 if __name__ == "__main__":
@@ -67,3 +81,4 @@ if __name__ == "__main__":
     test1()
     test2()
     test3()
+    test4()

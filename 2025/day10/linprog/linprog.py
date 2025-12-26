@@ -1,3 +1,4 @@
+from queue import Queue
 import numpy as np
 
 
@@ -9,7 +10,7 @@ def pivot(T: np.ndarray, row: int, col: int) -> None:
     T -= sub_coeffs[:, None] * T[row]
 
 
-def simplex(T: np.ndarray, basic_vars: np.ndarray, entering_max: int, tol: float = 1e-12) -> None:
+def simplex(T: np.ndarray, basic_vars: np.ndarray, entering_max: int, tol: float = 1e-8) -> None:
     """Run simplex in-place on the given tableau."""
     print("Simplex init:")
     print(f"basic vars: {basic_vars}")
@@ -32,7 +33,7 @@ def simplex(T: np.ndarray, basic_vars: np.ndarray, entering_max: int, tol: float
         print(T, "\n")
 
 
-def phase1(c: np.ndarray, A: np.ndarray, b: np.ndarray, tol: float = 1e-12) -> tuple[np.ndarray, np.ndarray]:
+def phase1(c: np.ndarray, A: np.ndarray, b: np.ndarray, tol: float = 1e-8) -> tuple[np.ndarray, np.ndarray]:
     """Simplex Phase 1: handles negative b, returns simplex tableau and basic vars."""
     b_pos_mask = b >= 0
     A_pos, b_pos = A[b_pos_mask], b[b_pos_mask]
@@ -127,14 +128,65 @@ def linprog(c: np.ndarray, A: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, fl
         basic_vars = np.arange(n, n + d)
 
     print("\nPhase 2")
-    simplex(T, basic_vars, entering_max=n)
+    simplex(T, basic_vars, entering_max=n+d)
 
     z = T[-1, -1]
     x = np.zeros(n, dtype=np.float64)
     for i, v in enumerate(basic_vars):
         if v < n: x[v] = T[i, -1]
-
-    print("\nSol:")
-    print(f"x = {x}")
-    print(f"z = {z}\n")
     return x, z
+
+
+def int_linprog(c: np.ndarray, A: np.ndarray, b: np.ndarray, tol: float = 1e-8) -> tuple[np.ndarray, float]:
+    best_z = -float("inf")
+    best_x = None
+
+    live_nodes = Queue()
+    # Nodes are (z, bounds).
+    # bounds dict maps (x idx, sign) -> bound.
+    live_nodes.put((float("inf"), {}))
+
+    while not live_nodes.empty():
+        prev_z, bounds = live_nodes.get()
+        if prev_z <= best_z + tol: continue
+        print(f"bounds: {bounds}")
+
+        newb = np.zeros(len(b) + len(bounds), dtype=np.float64)
+        newb[:len(b)] = b
+        newA = np.zeros((A.shape[0] + len(bounds), A.shape[1]), dtype=np.float64)
+        newA[:A.shape[0]] = A
+        for i, ((bv, sign), ub) in enumerate(bounds.items()):
+            newb[len(b) + i] = ub
+            newA[A.shape[0] + i, bv] = sign
+
+        try:
+            x, z = linprog(c, newA, newb)
+        except ValueError as e:
+            print(e)
+            continue
+        if z <= best_z + tol: continue
+
+        # If x is ints, valid candidate.
+        dtoint = np.abs(x - np.round(x))
+        if (dtoint < tol).all():
+            if z > best_z:
+                best_z = z
+                best_x = np.round(x)
+            continue
+
+        # x is not integers, branch.
+        branch_var = dtoint.argmax()
+
+        # x_branch <= floor(x_branch).
+        lt_bounds = bounds.copy()
+        lt_bounds[(branch_var, 1)] = np.floor(x[branch_var])
+        live_nodes.put((z, lt_bounds))
+
+        # x_branch >= ceil(x_branch) -> -x_branch <= -ceil(x_branch).
+        gt_bounds = bounds.copy()
+        gt_bounds[(branch_var, -1)] = -np.ceil(x[branch_var])
+        live_nodes.put((z, gt_bounds))
+
+    if best_x is None:
+        raise ValueError("Failed to find int solution")
+    return best_x, best_z
